@@ -42,6 +42,17 @@
                 z-index: 9999 !important; 
             }
             #recipe-section {
+                /* This is the magic line for side-cutoff */
+                white-space: pre-wrap !important; 
+                
+                /* These ensure words break if they are too long */
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                
+                /* Makes it look cleaner inside the box */
+                text-align: left !important;
+                padding: 10px !important;
+                line-height: 1.5 !important;
                 position: fixed;
                 top: 50%;
                 left: 50%;
