@@ -84,3 +84,8 @@ def recipe(food):
     text = completion.choices[0].message.content
 
     return jsonify({"food": food, "recipe": text})
+
+if __name__ == "__main__":
+    # Render provides a PORT environment variable. If it's not there, use 5000.
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
