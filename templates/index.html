@@ -4,83 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blue Ocean Food Tracker</title>
-    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        body {
-            /* Using !important to override any lingering broken styles */
-            background-image: url("{{ url_for('static', filename='background.png') }}") !important;
-            background-size: cover;
-            background-attachment: fixed;
-            background-position: center;
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow-x: hidden;
-        }
-
-        /* Grouping title and icons so they stay centered and together */
-        .main-wrapper {
-            text-align: center;
-            padding-top: 40px;
-            width: 100%;
-        }
-
-        .icon-container {
-            display: flex;
-            justify-content: center;
-            gap: 50px;
-            margin-top: 20px;
-        }
-
-        .app-icon {
-            cursor: pointer;
-            transition: transform 0.2s;
-            width: 160px; /* Adjust size to your liking */
-        }
-
-        .app-icon:hover {
-            transform: scale(1.05);
-        }
-
-        /* THE FIX: This forces the recipe to stay in a box and scroll */
-        #recipe-section {
-            position: fixed !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            
-            width: 85vw !important;
-            max-width: 500px !important;
-            max-height: 75vh !important;
-            
-            background: rgba(255, 255, 255, 0.98) !important;
-            padding: 25px !important;
-            border-radius: 20px !important;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.4) !important;
-            z-index: 9999 !important;
-            
-            overflow-y: auto !important; /* Forces vertical scroll */
-            overflow-x: hidden !important; /* Stops side-cutoff */
-            box-sizing: border-box !important;
-        }
-
+        /* This specific rule fixes the side cutoff and spacing */
         #recipe-content {
-            /* This is the magic for the text wrapping */
             white-space: pre-wrap !important;
             word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
             text-align: left !important;
-            line-height: 1.6;
+            max-height: 50vh;
+            overflow-y: auto;
+            padding: 10px;
             color: #2c3e50;
         }
-
-        .close-btn {
-            float: right;
-            background: #a94442;
-            color: white;
-            border: none;
-            padding: 5px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
+        /* Fixes button alignment in the modals */
+        .modal-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
     </style>
 </head>
@@ -88,59 +29,71 @@
 
     <div class="main-wrapper">
         <h1>Blue Ocean Food Tracker</h1>
-        
         <div class="icon-container">
-            <div onclick="openFridge()">
+            <div class="icon-box" onclick="toggleFridge()">
                 <img src="{{ url_for('static', filename='fridge.png') }}" class="app-icon" alt="Fridge">
                 <p><strong>My Fridge</strong></p>
             </div>
-            <div onclick="openRecipes()">
+            <div class="icon-box" onclick="toggleRecipes()">
                 <img src="{{ url_for('static', filename='cookbook.png') }}" class="app-icon" alt="Cookbook">
                 <p><strong>Cookbook</strong></p>
             </div>
         </div>
     </div>
 
-    <div id="recipe-section" style="display:none;">
-        <button class="close-btn" onclick="document.getElementById('recipe-section').style.display='none'">X</button>
-        <h2 style="color: #2c3e50; margin-top: 0;">Chef's Suggestion</h2>
-        <hr>
-        <div id="recipe-content">
-            </div>
+    <div id="fridge-section" class="hidden">
+        <button class="close-btn" onclick="closeAll()">X</button>
+        <div class="modal-section">
+            <h2>Add Food</h2>
+            <input type="text" id="food" placeholder="Food name">
+            <input type="number" id="seconds" placeholder="Seconds until expiry">
+            <button onclick="addFood()">Add to Fridge</button>
+            <hr>
+            <h3>Contents</h3>
+            <div id="foods">Loading...</div>
+            <button onclick="checkExpired()">Check Expiry</button>
+            <div id="expired"></div>
+        </div>
+    </div>
+
+    <div id="recipe-section" class="hidden">
+        <button class="close-btn" onclick="closeAll()">X</button>
+        <div class="modal-section">
+            <h2>Chef's Suggestion</h2>
+            <input type="text" id="recipeFood" placeholder="Enter an ingredient">
+            <button onclick="getRecipe()">Get Recipe</button>
+            <hr>
+            <div id="recipe-content">Enter an ingredient and click Get Recipe!</div>
+        </div>
     </div>
 
     <script>
-        // NAVIGATION LOGIC
         function toggleFridge() {
-            const fridge = document.getElementById("fridge-section");
-            const recipe = document.getElementById("recipe-section");
-            
-            fridge.classList.remove("hidden"); // Show fridge
-            recipe.classList.add("hidden");    // Hide recipes
-            loadFoods(); // Refresh list automatically
+            closeAll();
+            document.getElementById("fridge-section").classList.remove("hidden");
+            loadFoods();
         }
 
         function toggleRecipes() {
-            const fridge = document.getElementById("fridge-section");
-            const recipe = document.getElementById("recipe-section");
-            
-            recipe.classList.remove("hidden"); // Show recipes
-            fridge.classList.add("hidden");    // Hide fridge
+            closeAll();
+            document.getElementById("recipe-section").classList.remove("hidden");
         }
 
-        // CORE API LOGIC
+        function closeAll() {
+            document.getElementById("fridge-section").classList.add("hidden");
+            document.getElementById("recipe-section").classList.add("hidden");
+        }
+
         async function addFood() {
             const food = document.getElementById("food").value;
             const seconds = document.getElementById("seconds").value;
-
-            if (!food || !seconds) return alert("Please enter food and time!");
+            if (!food || !seconds) return alert("Enter food and time!");
 
             await fetch("/api/add_food", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({food, seconds})
             });
-
             document.getElementById("food").value = "";
             document.getElementById("seconds").value = "";
             loadFoods();
@@ -156,25 +109,21 @@
             const res = await fetch("/api/expired");
             const data = await res.json();
             document.getElementById("expired").innerText = 
-                data.expired.length > 0 ? "Expired: " + data.expired.join(", ") : "Nothing has expired yet.";
+                data.expired.length > 0 ? "Expired: " + data.expired.join(", ") : "Fresh!";
             loadFoods();
         }
 
         async function getRecipe() {
             const food = document.getElementById("recipeFood").value;
+            const contentDiv = document.getElementById("recipe-content");
+            contentDiv.innerText = "Thinking...";
+            
             const res = await fetch(`/api/recipe/${food}`);
             const data = await res.json();
-            document.getElementById("recipe").innerText = data.recipe;
-        }
-        function closeAll() {
-            document.getElementById("fridge-section").classList.add("hidden");
-            document.getElementById("recipe-section").classList.add("hidden");
+            contentDiv.innerText = data.recipe;
         }
 
-        // Initial background load
         loadFoods();
-
     </script>
-
 </body>
 </html>
