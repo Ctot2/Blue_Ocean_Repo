@@ -1,130 +1,112 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Blue Ocean Food Tracker</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blue Ocean Food Tracker</title>
     
-        <style>
-            body {
-                /* This forces the background image to find the correct Render path */
-                background-image: url("{{ url_for('static', filename='background.png') }}") !important;
-                background-size: cover;
-                background-attachment: fixed;
-                background-repeat: no-repeat;
-                background-position: center;
-                min-height: 100vh;
-                margin: 0;
-                display: block; /* Overrides flow-root if it's causing issues */
-            }
-    
-            h1 {
-                position: relative;
-                top: 50px; /* Adjusted so it's not hidden by the top of the screen */
-                z-index: 5;
-            }
-    
-            .icon-container {
-                display: flex;
-                justify-content: center;
-                gap: 50px;
-                margin-top: 100px; /* Pulls the icons up so they are visible */
-                position: relative;
-                z-index: 10;
-            }
-    
-            .icon-box {
-                cursor: pointer;
-                transition: transform 0.2s;
-            }
-    
-            /* Ensuring the modals sit on top of everything */
-            #fridge-section {
-                z-index: 9999 !important; 
-            }
-            #recipe-section {
-                /* This is the magic line for side-cutoff */
-                white-space: pre-wrap !important; 
-                
-                /* These ensure words break if they are too long */
-                word-wrap: break-word !important;
-                overflow-wrap: break-word !important;
-                
-                /* Makes it look cleaner inside the box */
-                text-align: left !important;
-                padding: 10px !important;
-                line-height: 1.5 !important;
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                width: 80%;
-                max-width: 600px;
-                max-height: 80vh; /* Limits height to 80% of the screen */
-                background: white;
-                padding: 20px;
-                border-radius: 15px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-                z-index: 9999;
-                
-                /* THE FIXES */
-                overflow-y: auto;        /* Adds vertical scrollbar if text is long */
-                overflow-x: hidden;      /* Prevents horizontal stretching */
-                white-space: pre-wrap;   /* Keeps AI formatting (line breaks) but wraps text */
-                word-wrap: break-word;   /* Breaks long words if necessary */
-            }
+    <style>
+        body {
+            /* Using !important to override any lingering broken styles */
+            background-image: url("{{ url_for('static', filename='background.png') }}") !important;
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
 
-            /* Ensure the Close Button stays visible at the top */
-            .close-btn {
-                position: sticky;
-                top: 0;
-                float: right;
-                background: #8b3a3a;
-                color: white;
-                border: none;
-                padding: 5px 10px;
-                border-radius: 5px;
-                cursor: pointer;
-                z-index: 10000;
-            }
-        </style>
-        </head>
+        /* Grouping title and icons so they stay centered and together */
+        .main-wrapper {
+            text-align: center;
+            padding-top: 40px;
+            width: 100%;
+        }
+
+        .icon-container {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin-top: 20px;
+        }
+
+        .app-icon {
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 160px; /* Adjust size to your liking */
+        }
+
+        .app-icon:hover {
+            transform: scale(1.05);
+        }
+
+        /* THE FIX: This forces the recipe to stay in a box and scroll */
+        #recipe-section {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            
+            width: 85vw !important;
+            max-width: 500px !important;
+            max-height: 75vh !important;
+            
+            background: rgba(255, 255, 255, 0.98) !important;
+            padding: 25px !important;
+            border-radius: 20px !important;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.4) !important;
+            z-index: 9999 !important;
+            
+            overflow-y: auto !important; /* Forces vertical scroll */
+            overflow-x: hidden !important; /* Stops side-cutoff */
+            box-sizing: border-box !important;
+        }
+
+        #recipe-content {
+            /* This is the magic for the text wrapping */
+            white-space: pre-wrap !important;
+            word-wrap: break-word !important;
+            text-align: left !important;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+
+        .close-btn {
+            float: right;
+            background: #a94442;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
 <body>
-    
-    <h1>Blue Ocean Food Tracker</h1>
 
-    <div class="icon-container">
-        <div class="icon-box" onclick="toggleFridge()">
-            <img src="{{ url_for('static', filename='fridge.png') }}" alt="Fridge" class="app-icon">
-            <p><strong>My Fridge</strong></p>
-        </div>
-        <div class="icon-box" onclick="toggleRecipes()">
-            <img src="{{ url_for('static', filename='cookbook.png') }}" alt="Cookbook" class="app-icon">
-            <p><strong>Cookbook</strong></p>
+    <div class="main-wrapper">
+        <h1>Blue Ocean Food Tracker</h1>
+        
+        <div class="icon-container">
+            <div onclick="openFridge()">
+                <img src="{{ url_for('static', filename='fridge.png') }}" class="app-icon" alt="Fridge">
+                <p><strong>My Fridge</strong></p>
+            </div>
+            <div onclick="openRecipes()">
+                <img src="{{ url_for('static', filename='cookbook.png') }}" class="app-icon" alt="Cookbook">
+                <p><strong>Cookbook</strong></p>
+            </div>
         </div>
     </div>
 
-    <div id="fridge-section" class="hidden">
-        <button class="close-button" onclick="closeAll()">x</button>
-        <h2>Add Food</h2>
-        <input id="food" placeholder="Food name">
-        <input id="seconds" placeholder="time until expiration" type="number">
-        <button onclick="addFood()">Add to Fridge</button>
-
+    <div id="recipe-section" style="display:none;">
+        <button class="close-btn" onclick="document.getElementById('recipe-section').style.display='none'">X</button>
+        <h2 style="color: #2c3e50; margin-top: 0;">Chef's Suggestion</h2>
         <hr>
-        <h2>FridgeContents</h2>
-        <div id="foods"></div>
-
-        <h2>Check Status</h2>
-        <button onclick="checkExpired()">Check Expired</button>
-        <div id="expired"></div>
-    </div>
-
-    <div id="recipe-section" class="hidden">
-        <button class="close-button" onclick="closeAll()">x</button>
-        <h2>Find a Recipe</h2>
-        <input id="recipeFood" placeholder="Enter ingredient">
-        <button onclick="getRecipe()">Get Recipe</button>
-        <pre id="recipe"></pre>
+        <div id="recipe-content">
+            </div>
     </div>
 
     <script>
@@ -191,6 +173,8 @@
 
         // Initial background load
         loadFoods();
+
     </script>
+
 </body>
 </html>
