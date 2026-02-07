@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Blue Ocean Food Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Blue Ocean Food Tracker</h1>
+
+    <div class="icon-container">
+        <div class="icon-box" onclick="toggleFridge()">
+            <img src="/static/fridge.png" alt="Fridge" class="app-icon">
+            <p><strong>My Fridge</strong></p>
+        </div>
+        <div class="icon-box" onclick="toggleRecipes()">
+            <img src="/static/cookbook.png" alt="Cookbook" class="app-icon">
+            <p><strong>Cookbook</strong></p>
+        </div>
+    </div>
+
+    <div id="fridge-section" class="hidden">
+        <button class="close-button" onclick="closeAll()">x</button>
+        <h2>Add Food</h2>
+        <input id="food" placeholder="Food name">
+        <input id="seconds" placeholder="time until expiration" type="number">
+        <button onclick="addFood()">Add to Fridge</button>
+
+        <hr>
+        <h2>FridgeContents</h2>
+        <div id="foods"></div>
+
+        <h2>Check Status</h2>
+        <button onclick="checkExpired()">Check Expired</button>
+        <div id="expired"></div>
+    </div>
+
+    <div id="recipe-section" class="hidden">
+        <button class="close-button" onclick="closeAll()">x</button>
+        <h2>Find a Recipe</h2>
+        <input id="recipeFood" placeholder="Enter ingredient">
+        <button onclick="getRecipe()">Get Recipe</button>
+        <pre id="recipe"></pre>
+    </div>
+
+    <script>
+        // NAVIGATION LOGIC
+        function toggleFridge() {
+            const fridge = document.getElementById("fridge-section");
+            const recipe = document.getElementById("recipe-section");
+            
+            fridge.classList.remove("hidden"); // Show fridge
+            recipe.classList.add("hidden");    // Hide recipes
+            loadFoods(); // Refresh list automatically
+        }
+
+        function toggleRecipes() {
+            const fridge = document.getElementById("fridge-section");
+            const recipe = document.getElementById("recipe-section");
+            
+            recipe.classList.remove("hidden"); // Show recipes
+            fridge.classList.add("hidden");    // Hide fridge
+        }
+
+        // CORE API LOGIC
+        async function addFood() {
+            const food = document.getElementById("food").value;
+            const seconds = document.getElementById("seconds").value;
+
+            if (!food || !seconds) return alert("Please enter food and time!");
+
+            await fetch("/api/add_food", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({food, seconds})
+            });
+
+            document.getElementById("food").value = "";
+            document.getElementById("seconds").value = "";
+            loadFoods();
+        }
+
+        async function loadFoods() {
+            const res = await fetch("/api/foods");
+            const data = await res.json();
+            document.getElementById("foods").innerText = data.foods.join(", ") || "Fridge is empty!";
+        }
+
+        async function checkExpired() {
+            const res = await fetch("/api/expired");
+            const data = await res.json();
+            document.getElementById("expired").innerText = 
+                data.expired.length > 0 ? "Expired: " + data.expired.join(", ") : "Nothing has expired yet.";
+            loadFoods();
+        }
+
+        async function getRecipe() {
+            const food = document.getElementById("recipeFood").value;
+            const res = await fetch(`/api/recipe/${food}`);
+            const data = await res.json();
+            document.getElementById("recipe").innerText = data.recipe;
+        }
+        function closeAll() {
+            document.getElementById("fridge-section").classList.add("hidden");
+            document.getElementById("recipe-section").classList.add("hidden");
+        }
+
+        // Initial background load
+        loadFoods();
+    </script>
+</body>
+</html>
