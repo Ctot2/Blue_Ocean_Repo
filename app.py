@@ -74,7 +74,7 @@ def recipe(food):
         messages=[
             {
                 "role": "user",
-                "content": f"Give me a clear, detailed recipe using '{food}'."
+                "content": f"Give me a clear, detailed recipe using '{food}'. if ''{food}' isn't actually a food, just reply something along the lines of try something else. "
             }
         ],
         temperature=1,

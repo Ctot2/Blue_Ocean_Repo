@@ -1,19 +1,93 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Blue Ocean Food Tracker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
+    <head>
+        <title>Blue Ocean Food Tracker</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+        <style>
+            body {
+                /* This forces the background image to find the correct Render path */
+                background-image: url("{{ url_for('static', filename='background.png') }}") !important;
+                background-size: cover;
+                background-attachment: fixed;
+                background-repeat: no-repeat;
+                background-position: center;
+                min-height: 100vh;
+                margin: 0;
+                display: block; /* Overrides flow-root if it's causing issues */
+            }
+    
+            h1 {
+                position: relative;
+                top: 50px; /* Adjusted so it's not hidden by the top of the screen */
+                z-index: 5;
+            }
+    
+            .icon-container {
+                display: flex;
+                justify-content: center;
+                gap: 50px;
+                margin-top: 100px; /* Pulls the icons up so they are visible */
+                position: relative;
+                z-index: 10;
+            }
+    
+            .icon-box {
+                cursor: pointer;
+                transition: transform 0.2s;
+            }
+    
+            /* Ensuring the modals sit on top of everything */
+            #fridge-section {
+                z-index: 9999 !important; 
+            }
+            #recipe-section {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 80%;
+                max-width: 600px;
+                max-height: 80vh; /* Limits height to 80% of the screen */
+                background: white;
+                padding: 20px;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                z-index: 9999;
+                
+                /* THE FIXES */
+                overflow-y: auto;        /* Adds vertical scrollbar if text is long */
+                overflow-x: hidden;      /* Prevents horizontal stretching */
+                white-space: pre-wrap;   /* Keeps AI formatting (line breaks) but wraps text */
+                word-wrap: break-word;   /* Breaks long words if necessary */
+            }
+
+            /* Ensure the Close Button stays visible at the top */
+            .close-btn {
+                position: sticky;
+                top: 0;
+                float: right;
+                background: #8b3a3a;
+                color: white;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 5px;
+                cursor: pointer;
+                z-index: 10000;
+            }
+        </style>
+        </head>
 <body>
+    
     <h1>Blue Ocean Food Tracker</h1>
 
     <div class="icon-container">
         <div class="icon-box" onclick="toggleFridge()">
-            <img src="/static/fridge.png" alt="Fridge" class="app-icon">
+            <img src="{{ url_for('static', filename='fridge.png') }}" alt="Fridge" class="app-icon">
             <p><strong>My Fridge</strong></p>
         </div>
         <div class="icon-box" onclick="toggleRecipes()">
-            <img src="/static/cookbook.png" alt="Cookbook" class="app-icon">
+            <img src="{{ url_for('static', filename='cookbook.png') }}" alt="Cookbook" class="app-icon">
             <p><strong>Cookbook</strong></p>
         </div>
     </div>
